@@ -1,0 +1,19 @@
+---
+- name: VMware visbility
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Set VCenter parameters
+      ansible.builtin.include_vars: login_info.yml
+
+    - name: Use info role
+      ansible.builtin.import_role:
+        name: cloud.vmware_ops.info
+      vars:
+        info_license: true
+        info_storage: true
+        info_appliance: true
+        info_guest: true
+        info_hostname: "{{ vcenter_hostname }}"
+        info_username: "{{ vcenter_username }}"
+        info_password: "{{ vcenter_password }}"
