@@ -17,3 +17,4 @@
         info_hostname: "{{ vcenter_hostname }}"
         info_username: "{{ vcenter_username }}"
         info_password: "{{ vcenter_password }}"
+        info_validate_certs: false
