@@ -1,0 +1,21 @@
+---
+- name: Create VMs
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Set VCenter parameters
+      ansible.builtin.include_vars: login_info.yml
+
+    - name: Provision a VM from template
+      ansible.builtin.import_role:
+        name: cloud.vmware_ops.provision_vm
+      vars:
+        provision_vm_name: "rhel9-sean"
+        provision_vm_template: "rhel9-template"
+        provision_vm_hostname: "pool1-vcenter2.practice.redhat.com"
+        provision_vm_username: "Administrator@vsphere.local"
+        provision_vm_password: "Pool1ansible!"
+        provision_vm_validate_certs: false
+        provision_vm_folder: "/Datacenter/vm/hackathon-folder"
+        provision_vm_datacenter: "Datacenter"
+        provision_vm_cluster: "New Cluster"

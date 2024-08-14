@@ -1,0 +1,104 @@
+---
+- name: Create VMs
+  hosts: localhost
+  gather_facts: false
+  tasks:
+    - name: Set VCenter parameters
+      ansible.builtin.include_vars: login_info.yml
+
+    - name: Set VCenter parameters
+      ansible.builtin.set_fact:
+        content_library_hostname: "{{ vcenter_hostname }}"
+        content_library_username: "{{ vcenter_username }}"
+        content_library_password: "{{ vcenter_password }}"
+        content_library_validate_certs: false
+        content_library_datacenter_name: "Datacenter"
+        content_library_datastore_name: "pool1-shared-datastore1"
+        content_library_type: local
+        content_library_name: hackathon-library
+        content_library_description: "Test content library"
+        content_library_cluster_name: "New Cluster"
+        vm: "test"
+        template_name: "rhel9-template"
+        template_host: "pool1-controller1.practice.redhat.com"
+
+    - name: Create Content Library
+      ansible.builtin.import_role:
+        name: cloud.vmware_ops.content_library
+
+    - name: Create template from vm in content library
+      vmware.vmware.content_template:
+        validate_certs: false
+        hostname: "{{ vcenter_hostname }}"
+        username: "{{ vcenter_username }}"
+        password: "{{ vcenter_password }}"
+        template: "{{ template_name }}"
+        library: "{{ content_library_name }}"
+        vm_name: "{{ vm }}"
+        host: "{{ template_host }}"
+      register: __res
+
+    - name: Get list of content libraries IDs
+      community.vmware.vmware_content_library_info:
+        hostname: "{{ content_library_hostname }}"
+        username: "{{ content_library_username }}"
+        password: "{{ content_library_password }}"
+        validate_certs: "{{ content_library_validate_certs }}"
+      register: content_library_ids
+
+    - name: Get content library info
+      community.vmware.vmware_content_library_info:
+        hostname: "{{ content_library_hostname }}"
+        username: "{{ content_library_username }}"
+        password: "{{ content_library_password }}"
+        validate_certs: "{{ content_library_validate_certs }}"
+        library_id: "{{ item }}"
+      loop: "{{ content_library_ids.content_libs }}"
+      register: content_library_details
+
+    - name: debug content_library_details
+      ansible.builtin.debug:
+        var: content_library_details
+
+    - name: "Get {{ content_library_name }} id"
+      set_fact:
+        content_library_id: "{{ (content_library_details.results | map(attribute='content_lib_details') | flatten | selectattr('library_name', '==', content_library_name) | first).library_id }}"
+
+    - name: Get the list of items of the library
+      vmware.vmware_rest.content_library_item_info:
+        vcenter_validate_certs: false
+        vcenter_hostname: "{{ vcenter_hostname }}"
+        vcenter_username: "{{ vcenter_username }}"
+        vcenter_password: "{{ vcenter_password }}"
+        library_id: "{{ content_library_id }}"
+      register: lib_items
+
+    - name: Use the name to identify the item
+      ansible.builtin.set_fact:
+        my_template_item: "{{ lib_items.value | selectattr('name', 'equalto', template_name)|first }}"
+
+    - name: debug my_template_item
+      ansible.builtin.debug:
+        var: my_template_item
+
+    - name: set connection info
+      ansible.builtin.set_fact:
+        connection_args:
+          vcenter_hostname: "{{ vcenter_hostname }}"
+          vcenter_username: "{{ vcenter_username }}"
+          vcenter_password: "{{ vcenter_password }}"
+          vcenter_validate_certs: false
+
+    - name: Provision a VM from template
+      ansible.builtin.import_role:
+        name: cloud.vmware_ops.provision_vm
+      vars:
+        provision_vm_name: "mytest"
+        provision_vm_template: "rhel9-template"
+        provision_vm_hostname: "pool1-vcenter2.practice.redhat.com"
+        provision_vm_username: "Administrator@vsphere.local"
+        provision_vm_password: "Pool1ansible!"
+        provision_vm_validate_certs: false
+        provision_vm_folder: "/Datacenter/vm/hackathon-folder"
+        provision_vm_datacenter: "Datacenter"
+        provision_vm_cluster: "New Cluster"
