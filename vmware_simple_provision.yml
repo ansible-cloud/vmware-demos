@@ -13,7 +13,7 @@
         provision_vm_name: "rhel9-sean"
         provision_vm_template: "rhel9-template"
         provision_vm_hostname: "pool1-vcenter2.practice.redhat.com"
-        provision_vm_username: "Administrator@vsphere.local"
+        provision_vm_username: "{{ vcenter_username }}"
         provision_vm_password: "{{ vcenter_password }}"
         provision_vm_validate_certs: false
         provision_vm_folder: "/Datacenter/vm/hackathon-folder"

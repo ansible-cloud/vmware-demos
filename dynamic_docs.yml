@@ -19,22 +19,32 @@
         info_password: "{{ vcenter_password }}"
         info_validate_certs: false
 
-    - name: Print guests info
+    - name: Print __guests info
       ansible.builtin.debug:
         msg: "{{ __guests }}"
 
-    - name: Print clusters info
+    - name: Print __clusters_info info
       ansible.builtin.debug:
         msg: "{{ __clusters_info }}"
 
-    - name: Print license info
+    - name: Print __license info
       ansible.builtin.debug:
         msg: "{{ __license }}"
 
-    - name: Print storage info
+    - name: Print __storage_policy info
       ansible.builtin.debug:
         msg: "{{ __storage_policy }}"
 
-    - name: Print appliance info
+    - name: Print __clusters info
       ansible.builtin.debug:
-        msg: "{{ __appliance }}"
+        msg: "{{ __clusters }}"
+
+    - name: Template report into HTML
+      ansible.builtin.include_role:
+        name: "../roles/template"
+
+    - name: Load report to host on AWS S3
+      ansible.builtin.include_role:
+        name: "../roles/build_report_s3"
+      vars:
+        reports_aws_bucket_name: vmware-report

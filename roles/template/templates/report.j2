@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Cloud Automation Report</title>
+  <link rel="stylesheet" type="text/css" href="//fonts.googleapis.com/css?family=Open+Sans" />
+  <link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  <link rel="stylesheet" href="css/main.css">
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+<script>
+$(function() {
+$( "#accordion > div" ).accordion({
+    header: "h3",
+    // active: false,
+    active: 0,  // Set this to the index of the panel you want expanded by default (0 for the first panel)
+collapsible: true
+});
+});
+</script>
+</head>
+<body>
+  {% include 'header.j2' %}
+<section>
+<center>
+<h1>Ansible & VMware Automation Example Report</h1>
+</center>
+<table class="main_net_table">
+    <thead>
+        <tr>
+            <th>Private Cloud</th>
+            <th class="region_column">Virtual Machines</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr>
+            <td class="summary_info">
+              <div id="hostname">
+              <img class="router_image" src="vmware.png" alt="picture of cloud">
+              <br><p class="hostname">Overview</p>
+            </div>
+              <div id="net_info_div">
+              <table class="net_info">
+              <tbody>
+                <tr>
+                  <td>Number of clusters</td>
+                  <td class="sub_net_info">{{ __clusters_info.results | length | default('unknown') }}</td>
+                </tr>
+                <tr>
+                  <td>Total Guests</td>
+                  <td class="sub_net_info">{{ __guests.guests | length | default('unknown') }}</td>
+                </tr>
+                <tr>
+                  <td>Total SPBM profiles</td>
+                  <td class="sub_net_info">{{ __storage_policy.spbm_profiles | length }}</td>
+                </tr>
+                <tr>
+                  <td>vSphere Appliance Version</td>
+                  <td class="sub_net_info">{{ __appliance.appliance.summary.version | default ('unknown')}}</td>
+                </tr>
+                <tr>
+                  <td>vSphere Product</td>
+                  <td class="sub_net_info">{{ __appliance.appliance.summary.product | default ('unknown')}}</td>
+                </tr>
+                <tr>
+                  <td>vSphere Uptime</td>
+                  <td class="sub_net_info">
+                    {% set uptime_seconds = __appliance.appliance.summary.uptime | float %}
+                    {% set uptime_years = (uptime_seconds // (365 * 24 * 3600)) | int %}
+                    {% set remaining_seconds_after_years = uptime_seconds - (uptime_years * 365 * 24 * 3600) %}
+                    {% set uptime_days = (remaining_seconds_after_years // (24 * 3600)) | int %}
+                    {% set remaining_seconds_after_days = remaining_seconds_after_years - (uptime_days * 24 * 3600) %}
+                    {% set uptime_hours = (remaining_seconds_after_days // 3600) | int %}
+                    {% set remaining_seconds_after_hours = remaining_seconds_after_days - (uptime_hours * 3600) %}
+                    {% set uptime_minutes = (remaining_seconds_after_hours // 60) | int %}
+                    {% set uptime_seconds_left = (remaining_seconds_after_hours - (uptime_minutes * 60)) | int %}
+                    {{ uptime_years }} years, {{ uptime_days }} days, {{ uptime_hours }} hours, {{ uptime_minutes }} minutes, {{ uptime_seconds_left }} seconds
+                  </td>
+                </tr>
+                <tr>
+                  <td>Playbook Run Time</td>
+                  <td class="sub_net_info">{{ ansible_date_time.iso8601 }}</td>
+                </tr>
+              </tbody>
+              </table>
+
+
+            {% include 'ansible.j2' %}
+          </div>
+
+
+
+            </td>
+
+            <td>
+              {% include 'vpc.j2' %}
+            </td>
+        </tr>
+
+    </tbody>
+</table>
+<center><p>Created with</p><br><img src="webpage_logo.png" width="300" alt="red hat ansible automation platform logo">
+<p>The source code to create this report can be found at <a href="https://github.com/ansible-cloud/vmware-demos">https://github.com/ansible-cloud/vmware-demos</a><br><br>
+If you are new to Ansible Automation check out the following links:<br>
+<a target="_new" href="https://www.redhat.com/en/interactive-labs/ansible">Interactive labs for Red Hat Ansible Automation Platform</a><br>
+<a target="_new" href="https://www.youtube.com/ansibleautomation?sub_confirmation=1">Youtube Videos</a><br>
+</p>
+</center>
+</section>
+</div>
+</body>
+</html>

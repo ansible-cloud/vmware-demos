@@ -1,0 +1,78 @@
+<!-- INTERNAL TABLE FOR Ansible -->
+<div id="accordion">
+{% for esxi_host in __guests.guests | groupby('hw_esxi_host') %}
+{% set running = esxi_host.list | selectattr('hw_power_status', 'equalto', "poweredOn") | length %}
+{% set powered_off = esxi_host.list | selectattr('hw_power_status', 'equalto', "poweredOff") | length %}
+{% set total = esxi_host.list | length %}
+<div>
+<h3><div id="host_title">{{ esxi_host.grouper | default('unknown') }}</div>
+<div class="instances_highlight">
+    {% if total > 0 %}
+        {% if running > 0 %}
+            <div class="instances_running">
+        {% endif %}
+            <i class="fas fa-power-off"></i>{{ running }} instances running
+        {% if running > 0 %}
+            </div>
+        {% endif %}
+        <div class="instances_stopped"><i class="fas fa-circle-stop"></i>{{ powered_off }} powered off ({{ total }} total)</div>
+    {% endif %}
+</div></h3>
+<div class="net_content">
+<p class="description">There are <strong>{{ total }}</strong> guest VMs on host {{ esxi_host.grouper | default('unknown') }}</p>
+
+<table class="net_info">
+<tbody>
+  <tr>
+    <th class="vpc_info">Guest name</th>
+    <th class="vpc_info">Power status</th>
+    <th class="vpc_info">Instance UUID</th>
+    <th class="vpc_info">IP address</th>
+    <th class="vpc_info">Guest ID</th>
+    <th class="vpc_info" id="cidr_assoc">Processor count</th>
+    <th class="vpc_info">Guest tools status</th>
+    <th class="vpc_info">Tags</th>
+  </tr>
+  {% for guest in esxi_host.list %}
+  <tr>
+  <td>{{ guest.hw_name | default('<span class="ui-accordion-header-icon ui-icon ui-icon-circle-close"></span>no name') }}</td>
+  <td style="text-align: center;">
+    {% if guest.hw_power_status == 'poweredOn' %}
+      <div class="poweron"><i class="fas fa-power-off"></i>On</div>
+    {% elif guest.hw_power_status == 'poweredOff' %}
+      <div class="poweroff"><i class="fas fa-circle-stop"></i>Off</div>
+    {% else %}
+      {{ guest.hw_power_status | default('N/A') }}
+    {% endif %}
+  </td>
+  <td>{{ guest.instance_uuid }}</td>
+  <td style="text-align: center;">{{ guest.ip_address | default('None') }}</td>
+  <td>{{ guest.hw_guest_id | default('N/A') }}</td>
+  <td style="text-align:center;">{{ guest.hw_processor_count | default('N/A') }}</td>
+  <td style="text-align: center;">
+    {% if guest.guest_tools_status == 'guestToolsRunning' %}
+      <div class="running"><i class="fas fa-circle-play"></i>Running</div>
+    {% elif guest.guest_tools_status == 'guestToolsNotRunning' %}
+      <div class="notrunning"><i class="fas fa-circle-exclamation"></i>Not Running</div>
+    {% else %}
+      {{ guest.guest_tools_status | default('N/A') }}
+    {% endif %}
+  </td>
+  <td>
+    {% if guest.tags %}
+        {% for tag in guest.tags %}
+            {{ tag }},
+        {% endfor %}
+    {% else %}
+        No tags
+    {% endif %}
+  </td>
+  </tr>
+  {% endfor %}
+</tbody>
+</table>
+</div>
+</div>
+{% endfor %}
+</div>
+<!-- END INTERNAL TABLE FOR Ansible -->
